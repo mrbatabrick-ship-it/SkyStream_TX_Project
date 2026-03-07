@@ -6,7 +6,6 @@ jobs:
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-
     strategy:
       fail-fast: false
       matrix:
@@ -14,52 +13,24 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-
-      # Install dependency Linux untuk JUCE
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
         run: |
-          sudo apt update
-          sudo apt install -y \
-            build-essential \
-            pkg-config \
-            libasound2-dev \
-            libjack-jackd2-dev \
-            libfreetype6-dev \
-            libx11-dev \
-            libxcomposite-dev \
-            libxcursor-dev \
-            libxinerama-dev \
-            libxext-dev \
-            libxrandr-dev \
-            libxrender-dev \
-            libcurl4-openssl-dev
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev
 
-
-      # Debug: cek apakah FreeType ditemukan
-      - name: Check FreeType
-        if: runner.os == 'Linux'
+      - name: Configure and Build
         run: |
-          pkg-config --modversion freetype2
-          pkg-config --cflags freetype2
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
 
-
-      # Configure project
-      - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
-
-
-      # Build project
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-
-      # Upload artefact
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SkyStream-TX-${{ matrix.os }}
           path: |
-            build/**/*SkyStream_TX*
+            build/SkyStream_TX_artefacts/
+            build/*.exe
+            build/SkyStream_TX
