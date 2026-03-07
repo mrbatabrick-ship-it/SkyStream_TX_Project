@@ -17,13 +17,14 @@ jobs:
         uses: actions/checkout@v4
 
 
-      # Install dependency Linux yang dibutuhkan JUCE
+      # Install dependency Linux untuk JUCE
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt update
           sudo apt install -y \
             build-essential \
+            pkg-config \
             libasound2-dev \
             libjack-jackd2-dev \
             libfreetype6-dev \
@@ -34,22 +35,28 @@ jobs:
             libxext-dev \
             libxrandr-dev \
             libxrender-dev \
-            libcurl4-openssl-dev \
-            pkg-config \
-            freeglut3-dev
+            libcurl4-openssl-dev
 
 
-      # Configure project dengan CMake
+      # Debug: cek apakah FreeType ditemukan
+      - name: Check FreeType
+        if: runner.os == 'Linux'
+        run: |
+          pkg-config --modversion freetype2
+          pkg-config --cflags freetype2
+
+
+      # Configure project
       - name: Configure
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
 
-      # Compile project
+      # Build project
       - name: Build
         run: cmake --build build --config Release --parallel
 
 
-      # Upload hasil build
+      # Upload artefact
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
