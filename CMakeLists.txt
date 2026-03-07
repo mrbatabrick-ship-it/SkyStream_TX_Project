@@ -5,29 +5,19 @@ include(FetchContent)
 FetchContent_Declare(
     juce
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        master
+    GIT_TAG        8.0.0 # Mengunci versi agar CI stabil
 )
 FetchContent_MakeAvailable(juce)
 
-# Menambahkan WIN32 dan properti executable untuk memperbaiki error WinMain
+# juce_add_gui_app otomatis menangani WinMain (Windows) dan main (Linux/macOS)
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
-    VERSION 1.0.0
-    BUNDLE_ID "com.skystream.tx"
-    IS_CONTENT_BROWSER_APP TRUE
-    WIN32 
 )
-
-# Perbaikan paksa untuk Windows Entry Point
-if(MSVC)
-    set_target_properties(SkyStream_TX PROPERTIES WIN32_EXECUTABLE TRUE)
-    target_compile_definitions(SkyStream_TX PRIVATE JUCE_WORLD_IS_GUI=1)
-endif()
 
 target_sources(SkyStream_TX PRIVATE
     Source/Main.cpp
-    Source/MainComponent.h
     Source/MainComponent.cpp
+    Source/MainComponent.h
 )
 
 target_link_libraries(SkyStream_TX PRIVATE
