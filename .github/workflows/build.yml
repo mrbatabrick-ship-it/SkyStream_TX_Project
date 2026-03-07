@@ -26,11 +26,6 @@ jobs:
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
 
-	- name: Configure and Build
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
-
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
