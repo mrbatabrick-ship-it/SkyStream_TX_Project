@@ -35,3 +35,5 @@ target_link_libraries(SkyStream_TX PRIVATE
 )
 
 juce_generate_juce_header(SkyStream_TX)
+
+# Trigger Build SkyStream TX V.2.2.7
