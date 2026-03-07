@@ -9,7 +9,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(juce)
 
-# Tambahkan WIN32 agar tidak error WinMain di Windows
+# Menambahkan WIN32 dan properti executable untuk memperbaiki error WinMain
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
     VERSION 1.0.0
@@ -18,7 +18,7 @@ juce_add_gui_app(SkyStream_TX
     WIN32 
 )
 
-# Perbaikan khusus untuk entry point Windows
+# Perbaikan paksa untuk Windows Entry Point
 if(MSVC)
     set_target_properties(SkyStream_TX PROPERTIES WIN32_EXECUTABLE TRUE)
     target_compile_definitions(SkyStream_TX PRIVATE JUCE_WORLD_IS_GUI=1)
