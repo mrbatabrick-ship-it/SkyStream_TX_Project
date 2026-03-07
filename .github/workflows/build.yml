@@ -15,6 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Install JUCE
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/juce-framework/JUCE.git JUCE_Library
+
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
         run: |
@@ -23,5 +28,5 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJUCE_ROOT=JUCE_Library
           cmake --build build --config Release
