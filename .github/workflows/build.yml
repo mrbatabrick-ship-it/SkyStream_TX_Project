@@ -23,7 +23,8 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          # Menambahkan CMAKE_PREFIX_PATH agar Linux menemukan library di folder sistem
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu
           cmake --build build --config Release
 
       - name: Upload Build Artifacts
