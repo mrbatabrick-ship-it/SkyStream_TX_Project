@@ -28,5 +28,5 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJUCE_ROOT=JUCE_Library
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DJUCE_ROOT=JUCE_Library -Djuce_DIR=JUCE_Library/lib/cmake/juce
           cmake --build build --config Release
