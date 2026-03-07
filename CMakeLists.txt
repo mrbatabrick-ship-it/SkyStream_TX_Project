@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 project(SkyStream_TX_Project VERSION 1.0.0)
 
-
-find_package(JUCE CONFIG REQUIRED)
+include(FetchContent)
+FetchContent_Declare(
+    juce
+    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+    GIT_TAG        master  # atau gunakan versi spesifik seperti 7.0.5
+)
+FetchContent_MakeAvailable(juce)
 
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
