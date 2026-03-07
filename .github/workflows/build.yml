@@ -32,6 +32,5 @@ jobs:
           name: SkyStream-TX-${{ matrix.os }}
           path: |
             build/SkyStream_TX_artefacts/
-            build/SkyStream_TX_Project_artefacts/
             build/*.exe
             build/SkyStream_TX
