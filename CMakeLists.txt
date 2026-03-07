@@ -24,6 +24,11 @@ target_sources(SkyStream_TX PRIVATE
     Source/MainComponent.cpp
 )
 
+# Tambahkan definisi ini untuk stabilitas entry point
+if(MSVC)
+    target_compile_definitions(SkyStream_TX PRIVATE JUCE_WORLD_IS_GUI=1)
+endif()
+
 target_link_libraries(SkyStream_TX PRIVATE
     juce::juce_audio_basics
     juce::juce_audio_devices
