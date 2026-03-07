@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(SkyStream_TX_Project VERSION 1.0.0)
 
-# Memberitahu CMake untuk mencari JUCE di folder lokal yang akan diunduh GitHub
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/JUCE_Library")
 
 find_package(JUCE CONFIG REQUIRED)
 

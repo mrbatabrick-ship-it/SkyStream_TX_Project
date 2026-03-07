@@ -17,7 +17,11 @@ jobs:
 
       - name: Install JUCE
         shell: bash
-        run: git clone --depth 1 https://github.com/juce-framework/JUCE.git JUCE_Library
+        run: |
+          git clone --depth 1 https://github.com/juce-framework/JUCE.git JUCE_Library
+          cmake -B JUCE_Library/build -S JUCE_Library -DJUCE_BUILD_EXTRAS=ON
+          cmake --build JUCE_Library/build --target juceaide
+          sudo cmake --install JUCE_Library/build --prefix /usr/local || cmake --install JUCE_Library/build --prefix ./juce_installed
 
       - name: Install Linux Dependencies
         if: runner.os == 'Linux'
@@ -27,5 +31,5 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -B build -DJUCE_ROOT=JUCE_Library -Djuce_DIR=JUCE_Library/lib/cmake/juce
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
