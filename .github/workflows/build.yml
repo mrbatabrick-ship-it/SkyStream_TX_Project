@@ -20,11 +20,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev
+          # Memastikan path freetype terdaftar secara global di environment
+          echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
 
       - name: Configure and Build
         run: |
-          # Menambahkan CMAKE_PREFIX_PATH agar Linux menemukan library di folder sistem
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu
+          # Gunakan generator Unix Makefiles untuk Linux agar lebih stabil
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
 
       - name: Upload Build Artifacts
