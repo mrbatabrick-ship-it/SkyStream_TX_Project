@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 
+
+set(juce_DIR "${CMAKE_CURRENT_SOURCE_DIR}/JUCE_Library/lib/cmake/juce")
+
+find_package(JUCE CONFIG REQUIRED)
+
 project(SkyStream_TX VERSION 2.2.7)
 
 # 1. Mencari library JUCE
