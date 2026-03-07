@@ -9,7 +9,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(juce)
 
-# Menambahkan WIN32 sangat penting agar tidak muncul error 'unresolved external symbol WinMain'
+# Tambahkan WIN32 agar tidak error WinMain di Windows
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
     VERSION 1.0.0
