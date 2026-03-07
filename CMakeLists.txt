@@ -5,15 +5,17 @@ include(FetchContent)
 FetchContent_Declare(
     juce
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        master  # atau gunakan versi spesifik seperti 7.0.5
+    GIT_TAG        master
 )
 FetchContent_MakeAvailable(juce)
 
+# Tambahkan WIN32 di sini agar tidak error WinMain di Windows
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
     VERSION 1.0.0
     BUNDLE_ID "com.skystream.tx"
     IS_CONTENT_BROWSER_APP TRUE
+    WIN32 
 )
 
 target_sources(SkyStream_TX PRIVATE
@@ -22,6 +24,7 @@ target_sources(SkyStream_TX PRIVATE
     Source/MainComponent.cpp
 )
 
+# Memastikan semua library sistem terhubung otomatis
 target_link_libraries(SkyStream_TX PRIVATE
     juce::juce_audio_basics
     juce::juce_audio_devices
