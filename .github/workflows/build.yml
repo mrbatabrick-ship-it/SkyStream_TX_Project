@@ -11,8 +11,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # Update database paket dan instal semua library yang dibutuhkan JUCE
           sudo apt-get update
-          # Menginstal library grafis (GTK3) dan audio yang dicari oleh compiler
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
@@ -21,17 +21,15 @@ jobs:
 
       - name: Force Build and Link Juceaide
         run: |
-          # 1. Configure build awal
+          # Build juceaide secara mandiri untuk menghindari error code 127
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON \
             -DJUCE_WEB_BROWSER=OFF
           
-          # 2. Build juceaide secara khusus
           cmake --build build --target juceaide --config Release
           
-          # 3. Trik Alias: Membuat 'juce::juceaide' tersedia di system path
-          # Ini untuk mengatasi error [code=127] yang muncul sebelumnya
+          # Trik Alias agar Ninja menemukan juce::juceaide
           JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
           sudo cp "$JUCE_EXE" /usr/bin/juceaide
           sudo chmod +x /usr/bin/juceaide
@@ -39,7 +37,7 @@ jobs:
 
       - name: Final Build SkyStream TX
         run: |
-          # Sekarang compiler akan menemukan <gtk/gtk.h> dan juceaide
+          # Sekarang compiler akan menemukan <gtk/gtk.h> karena paket sudah diinstal
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
