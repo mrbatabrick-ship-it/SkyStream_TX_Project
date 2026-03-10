@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build-linux:
-    name: Build TX via Projucer Makefile
+    name: Build TX via CMake
     runs-on: ubuntu-latest
 
     steps:
@@ -15,16 +15,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev
-          echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
 
-      - name: Build with Makefile
+      - name: Configure and Build
         run: |
-          # Masuk ke folder proyek Anda, lalu ke folder hasil export Projucer
-          cd SKYSTREAM_TX_Project/Builds/LinuxMakefile
-          make CONFIG=Release -j$(nproc)
+          # CMake akan otomatis mengunduh JUCE 8.0.0 sesuai file CMakeLists.txt Anda
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Linux Binary
         uses: actions/upload-artifact@v4
         with:
           name: SkyStream-TX-Linux
-          path: SKYSTREAM_TX_Project/Builds/LinuxMakefile/build/
+          path: build/SkyStream_TX_artefacts/Release/
