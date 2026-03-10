@@ -21,13 +21,14 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # Kita bypass juceaide dengan mematikan tools yang tidak kritis untuk TX
+          # Kita gunakan flag CMake untuk mematikan fitur yang butuh webkit & juceaide
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=OFF \
             -DJUCE_WEB_BROWSER=OFF \
             -DJUCE_USE_CURL=ON
           
+          # Build langsung target TX
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Binary
