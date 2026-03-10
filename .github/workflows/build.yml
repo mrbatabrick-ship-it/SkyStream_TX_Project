@@ -4,14 +4,12 @@ on: [push]
 
 jobs:
   build-linux:
-    name: Build TX via CMake
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Linux Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -21,35 +19,15 @@ jobs:
             freeglut3-dev libwebkit2gtk-4.1-dev libgtk-3-dev ninja-build
           echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
 
-      - name: Configure
+      - name: Configure and Build
         run: |
-          # Kita tambahkan JUCE_BUILD_HELPER_TOOLS=ON DAN mematikan auto-generation header
+          # Kita gunakan Ninja untuk speed dan mematikan helper tools yang bikin error
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_BUILD_HELPER_TOOLS=ON \
-            -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF
-
-      - name: Build juceaide and Fix Path
-        run: |
-          # 1. Bangun juceaide
-          cmake --build build --target juceaide --config Release
-          
-          # 2. Ambil lokasi absolut juceaide
-          JA_PATH=$(find build -name juceaide -type f -executable | head -n 1)
-          JA_DIR=$(dirname "$(pwd)/$JA_PATH")
-          
-          # 3. MASUKKAN KE PATH SISTEM secara permanen untuk sesi ini
-          echo "$JA_DIR" >> $GITHUB_PATH
-          
-          # 4. Buat symbolic link global sebagai jaring pengaman terakhir
-          sudo ln -sf "$(pwd)/$JA_PATH" /usr/local/bin/juceaide
-
-      - name: Build SkyStream_TX
-        run: |
-          # Sekarang juceaide sudah ada di PATH sistem, cmake harusnya bisa menemukannya
+            -DJUCE_BUILD_HELPER_TOOLS=OFF
           cmake --build build --config Release --target SkyStream_TX
 
-      - name: Upload Linux Binary
+      - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
           name: SkyStream-TX-Linux

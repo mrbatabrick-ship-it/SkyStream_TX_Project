@@ -5,14 +5,17 @@ include(FetchContent)
 FetchContent_Declare(
     juce
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        8.0.0 # Mengunci versi agar CI stabil
+    GIT_TAG 8.0.0
 )
 FetchContent_MakeAvailable(juce)
 
-# juce_add_gui_app otomatis menangani WinMain (Windows) dan main (Linux/macOS)
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
 )
+
+# --- BAGIAN PENTING: Mencegah Error 127 tanpa merusak kode ---
+# Kita tetap biarkan header ada, tapi matikan auto-generation yang butuh juceaide
+juce_set_juce_header_generation(SkyStream_TX OFF) 
 
 target_sources(SkyStream_TX PRIVATE
     Source/Main.cpp
@@ -33,7 +36,3 @@ target_link_libraries(SkyStream_TX PRIVATE
     juce::juce_gui_basics
     juce::juce_gui_extra
 )
-
-juce_generate_juce_header(SkyStream_TX)
-
-# Trigger Build SkyStream TX V.2.2.7
