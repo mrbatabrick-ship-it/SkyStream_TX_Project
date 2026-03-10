@@ -13,8 +13,7 @@ juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
 )
 
-# Gunakan ini sebagai ganti baris 18 yang error. 
-# Ini akan membuat JuceHeader.h tersedia secara manual tanpa butuh juceaide di CI.
+# Memastikan JuceHeader.h dibuat di lokasi yang konsisten
 juce_generate_juce_header(SkyStream_TX)
 
 target_sources(SkyStream_TX PRIVATE

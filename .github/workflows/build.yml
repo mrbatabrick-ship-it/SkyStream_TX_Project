@@ -1,33 +1,49 @@
 name: Build_SkyStream_TX_Linux
+
 on: [push]
+
 jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Deps
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev libgtk-3-dev ninja-build
-      
-      - name: Build
+          sudo apt-get install -y \
+            libasound2-dev libjack-jackd2-dev libfreetype6-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
+            libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
+            freeglut3-dev libgtk-3-dev ninja-build
+          echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
+
+      - name: Force Build Juceaide and Link
         run: |
-          # 1. Configure dengan mematikan fitur yang butuh webkit (untuk hindari error code 100/127)
+          # 1. Configure awal tanpa webkit (untuk menghindari error dependensi)
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_WEB_BROWSER=OFF \
-            -DJUCE_BUILD_HELPER_TOOLS=ON
+            -DJUCE_BUILD_HELPER_TOOLS=ON \
+            -DJUCE_WEB_BROWSER=OFF
           
-          # 2. Bangun juceaide dulu agar sistem punya 'mesin' pembuat header
+          # 2. Bangun juceaide secara spesifik sampai jadi executable
           cmake --build build --target juceaide --config Release
           
-          # 3. Beritahu sistem di mana lokasi juceaide agar bisa dipakai otomatis
-          export PATH=$PATH:$(find build -name juceaide -type f -executable -exec dirname {} \;)
+          # 3. SUNTIKKAN KE SYSTEM PATH (Ini kunci untuk menghapus error code=127)
+          JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
+          sudo cp "$JUCE_EXE" /usr/bin/juceaide
+          sudo chmod +x /usr/bin/juceaide
           
-          # 4. Jalankan build utama (Sekarang JuceHeader.h akan tercipta otomatis)
+          # Verifikasi ketersediaan juceaide
+          juceaide --version
+
+      - name: Final Build SkyStream TX
+        run: |
+          # 4. Sekarang jalankan build utama, CMakeLists.txt Anda akan menemukan juceaide di /usr/bin/
           cmake --build build --config Release --target SkyStream_TX
 
-      - name: Upload
+      - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
           name: SkyStream-TX-Linux
