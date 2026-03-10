@@ -8,7 +8,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          # Library ini wajib ada untuk membangun aplikasi GUI JUCE di Linux
+          # Menambahkan libgtk-3-dev untuk memperbaiki fatal error gtk/gtk.h
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
