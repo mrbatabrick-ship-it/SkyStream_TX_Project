@@ -13,8 +13,9 @@ juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
 )
 
-# GANTI BARIS 18 DENGAN INI (Lebih aman dan universal):
-set_target_properties(SkyStream_TX PROPERTIES JUCE_GENERATED_SOURCES_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/JuceLibraryCode")
+# Gunakan ini sebagai ganti baris 18 yang error. 
+# Ini akan membuat JuceHeader.h tersedia secara manual tanpa butuh juceaide di CI.
+juce_generate_juce_header(SkyStream_TX)
 
 target_sources(SkyStream_TX PRIVATE
     Source/Main.cpp
