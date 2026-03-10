@@ -35,12 +35,15 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # Menggunakan -DJUCE_BUILD_HELPER_TOOLS=ON untuk memastikan juceaide terbuat
+          # 1. Configure
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON
           
-          # Build target aplikasi
+          # 2. Build juceaide secara eksplisit terlebih dahulu untuk menghindari Error 127
+          cmake --build build --target juceaide --config Release
+          
+          # 3. Build aplikasi utama
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Linux Binary
