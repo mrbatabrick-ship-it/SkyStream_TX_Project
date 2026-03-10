@@ -23,27 +23,30 @@ jobs:
 
       - name: Configure
         run: |
+          # Kita tambahkan JUCE_BUILD_HELPER_TOOLS=ON DAN mematikan auto-generation header
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_BUILD_HELPER_TOOLS=ON
+            -DJUCE_BUILD_HELPER_TOOLS=ON \
+            -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF
 
-      - name: Build juceaide and Generate Header Manually
+      - name: Build juceaide and Fix Path
         run: |
           # 1. Bangun juceaide
           cmake --build build --target juceaide --config Release
           
-          # 2. Temukan lokasi juceaide
-          JUCEAIDE_BIN=$(find build -name juceaide -type f -executable | head -n 1)
+          # 2. Ambil lokasi absolut juceaide
+          JA_PATH=$(find build -name juceaide -type f -executable | head -n 1)
+          JA_DIR=$(dirname "$(pwd)/$JA_PATH")
           
-          # 3. Paksa generate header secara manual untuk bypass error 127
-          mkdir -p build/SkyStream_TX_artefacts/JuceLibraryCode
-          ./$JUCEAIDE_BIN header \
-            build/SkyStream_TX_artefacts/JuceLibraryCode/Release/Defs.txt \
-            build/SkyStream_TX_artefacts/JuceLibraryCode/JuceHeader.h
+          # 3. MASUKKAN KE PATH SISTEM secara permanen untuk sesi ini
+          echo "$JA_DIR" >> $GITHUB_PATH
+          
+          # 4. Buat symbolic link global sebagai jaring pengaman terakhir
+          sudo ln -sf "$(pwd)/$JA_PATH" /usr/local/bin/juceaide
 
       - name: Build SkyStream_TX
         run: |
-          # Jalankan build utama (header sudah tersedia sekarang)
+          # Sekarang juceaide sudah ada di PATH sistem, cmake harusnya bisa menemukannya
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Linux Binary
@@ -51,5 +54,3 @@ jobs:
         with:
           name: SkyStream-TX-Linux
           path: build/SkyStream_TX_artefacts/Release/
-
-# Trigger Build V.2.2.7.
