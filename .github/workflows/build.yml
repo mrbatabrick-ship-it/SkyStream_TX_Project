@@ -15,22 +15,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libasound2-dev \
-            libjack-jackd2-dev \
-            libfreetype6-dev \
-            libx11-dev \
-            libxcomposite-dev \
-            libxcursor-dev \
-            libxinerama-dev \
-            libxext-dev \
-            libxrandr-dev \
-            libcurl4-openssl-dev \
-            pkg-config \
-            freeglut3-dev \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            ninja-build
-          
+            libasound2-dev libjack-jackd2-dev libfreetype6-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
+            libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
+            freeglut3-dev libwebkit2gtk-4.1-dev libgtk-3-dev ninja-build
           echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
 
       - name: Configure
@@ -39,17 +27,23 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON
 
-      - name: Build juceaide and Setup Path
+      - name: Build juceaide and Generate Header Manually
         run: |
-          # Bangun juceaide
+          # 1. Bangun juceaide
           cmake --build build --target juceaide --config Release
           
-          # Cari lokasi juceaide dan buat link ke /usr/local/bin agar terbaca secara global oleh sistem
-          JUCEAIDE_PATH=$(find build -name juceaide -type f -executable | head -n 1)
-          sudo ln -s "$(pwd)/$JUCEAIDE_PATH" /usr/local/bin/juceaide
+          # 2. Temukan lokasi juceaide
+          JUCEAIDE_BIN=$(find build -name juceaide -type f -executable | head -n 1)
+          
+          # 3. Paksa generate header secara manual untuk bypass error 127
+          mkdir -p build/SkyStream_TX_artefacts/JuceLibraryCode
+          ./$JUCEAIDE_BIN header \
+            build/SkyStream_TX_artefacts/JuceLibraryCode/Release/Defs.txt \
+            build/SkyStream_TX_artefacts/JuceLibraryCode/JuceHeader.h
 
       - name: Build SkyStream_TX
         run: |
+          # Jalankan build utama (header sudah tersedia sekarang)
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Linux Binary
