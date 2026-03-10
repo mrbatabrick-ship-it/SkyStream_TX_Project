@@ -39,15 +39,17 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON
 
-      - name: Build juceaide
+      - name: Build juceaide and Setup Path
         run: |
-          # Membangun juceaide terlebih dahulu agar tersedia untuk pembuatan header
+          # Bangun juceaide
           cmake --build build --target juceaide --config Release
+          
+          # Cari lokasi juceaide dan buat link ke /usr/local/bin agar terbaca secara global oleh sistem
+          JUCEAIDE_PATH=$(find build -name juceaide -type f -executable | head -n 1)
+          sudo ln -s "$(pwd)/$JUCEAIDE_PATH" /usr/local/bin/juceaide
 
       - name: Build SkyStream_TX
         run: |
-          # Menambahkan direktori build ke PATH agar juce::juceaide bisa ditemukan
-          export PATH=$PATH:$(pwd)/build/extras/Build/juceaide/juceaide_artefacts/Release
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Linux Binary
