@@ -5,22 +5,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install Deps
+      - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev libgtk-3-dev ninja-build
+          echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
       
-      - name: Force Build
+      - name: Configure and Build
         run: |
-          # Configure tanpa helper tools dulu
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON
+          # Mematikan helper tools dan web browser lewat command line (Sangat Aman)
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DJUCE_BUILD_HELPER_TOOLS=OFF \
+            -DJUCE_WEB_BROWSER=OFF
           
-          # Bangun juceaide secara spesifik
-          cmake --build build --target juceaide --config Release
-          
-          # PAKSA: Buat symbolic link ke /usr/bin agar 'juce::juceaide' ditemukan secara global
-          JA_PATH=$(find build -name juceaide -type f -executable | head -n 1)
-          sudo ln -sf "$(pwd)/$JA_PATH" /usr/bin/juceaide
-          
-          # Jalankan build utama
           cmake --build build --config Release --target SkyStream_TX
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyStream-TX-Linux
+          path: build/SkyStream_TX_artefacts/Release/

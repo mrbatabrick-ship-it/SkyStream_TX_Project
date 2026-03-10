@@ -13,9 +13,8 @@ juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
 )
 
-# --- BAGIAN PENTING: Mencegah Error 127 tanpa merusak kode ---
-# Kita tetap biarkan header ada, tapi matikan auto-generation yang butuh juceaide
-juce_set_juce_header_generation(SkyStream_TX OFF) 
+# GANTI BARIS 18 DENGAN INI (Lebih aman dan universal):
+set_target_properties(SkyStream_TX PROPERTIES JUCE_GENERATED_SOURCES_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/JuceLibraryCode")
 
 target_sources(SkyStream_TX PRIVATE
     Source/Main.cpp
