@@ -1,39 +1,30 @@
-name: Build_SkyStream
+name: Build_SkyStream_TX_Linux
 
 on: [push]
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
+  build-linux:
+    name: Build TX via Projucer Makefile
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev
-          # Memastikan path freetype terdaftar secara global di environment
           echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
 
-      - name: Configure and Build
+      - name: Build with Makefile
         run: |
-          # Gunakan generator Unix Makefiles untuk Linux agar lebih stabil
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --config Release
+          # Masuk ke folder proyek Anda, lalu ke folder hasil export Projucer
+          cd SKYSTREAM_TX_Project/Builds/LinuxMakefile
+          make CONFIG=Release -j$(nproc)
 
-      - name: Upload Build Artifacts
+      - name: Upload Linux Binary
         uses: actions/upload-artifact@v4
         with:
-          name: SkyStream-TX-${{ matrix.os }}
-          path: |
-            build/SkyStream_TX_artefacts/
-            build/*.exe
-            build/SkyStream_TX
+          name: SkyStream-TX-Linux
+          path: SKYSTREAM_TX_Project/Builds/LinuxMakefile/build/
