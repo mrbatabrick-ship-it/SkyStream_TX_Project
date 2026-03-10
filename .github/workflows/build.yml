@@ -1,40 +1,26 @@
 name: Build_SkyStream_TX_Linux
-
 on: [push]
-
 jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install Dependencies
+      - uses: actions/checkout@v3
+      - name: Install Deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libasound2-dev libjack-jackd2-dev libfreetype6-dev \
-            libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
-            libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
-            freeglut3-dev libgtk-3-dev ninja-build
-          echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
-
-      - name: Configure and Build
+          sudo apt-get install -y libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config freeglut3-dev libgtk-3-dev ninja-build
+      
+      - name: Force Build
         run: |
-          # Kita paksa CMake menggunakan flag internal JUCE untuk bypass semua masalah:
-          # 1. JUCE_WEB_BROWSER=OFF menghilangkan butuhnya webkit2gtk-4.0
-          # 2. JUCE_BUILD_HELPER_TOOLS=OFF mencegah sistem rewel soal juceaide
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_BUILD_HELPER_TOOLS=OFF \
-            -DJUCE_WEB_BROWSER=OFF \
-            -DJUCE_USE_CURL=ON
+          # Configure tanpa helper tools dulu
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON
           
-          # Build aplikasi utama
+          # Bangun juceaide secara spesifik
+          cmake --build build --target juceaide --config Release
+          
+          # PAKSA: Buat symbolic link ke /usr/bin agar 'juce::juceaide' ditemukan secara global
+          JA_PATH=$(find build -name juceaide -type f -executable | head -n 1)
+          sudo ln -sf "$(pwd)/$JA_PATH" /usr/bin/juceaide
+          
+          # Jalankan build utama
           cmake --build build --config Release --target SkyStream_TX
-
-      - name: Upload Binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: SkyStream-TX-Linux
-          path: build/SkyStream_TX_artefacts/Release/
