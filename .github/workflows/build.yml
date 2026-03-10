@@ -21,14 +21,16 @@ jobs:
 
       - name: Configure and Build
         run: |
-          # Kita gunakan flag CMake untuk mematikan fitur yang butuh webkit & juceaide
+          # Kita paksa CMake menggunakan flag internal JUCE untuk bypass semua masalah:
+          # 1. JUCE_WEB_BROWSER=OFF menghilangkan butuhnya webkit2gtk-4.0
+          # 2. JUCE_BUILD_HELPER_TOOLS=OFF mencegah sistem rewel soal juceaide
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=OFF \
             -DJUCE_WEB_BROWSER=OFF \
             -DJUCE_USE_CURL=ON
           
-          # Build langsung target TX
+          # Build aplikasi utama
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Binary
