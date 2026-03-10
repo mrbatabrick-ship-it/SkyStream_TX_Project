@@ -15,14 +15,19 @@ jobs:
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON -DJUCE_WEB_BROWSER=OFF
           cmake --build build --target juceaide --config Release
           
-          # Pindahkan ke system path agar CMakeLists.txt bisa memanggilnya
+          # AMBIL LOKASI FISIK JUCEAIDE
           JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
+          
+          # BUAT ALIAS GLOBAL (Agar juceaide bisa dipanggil langsung)
           sudo cp "$JUCE_EXE" /usr/bin/juceaide
           sudo chmod +x /usr/bin/juceaide
+          
+          # BUAT ALIAS KHUSUS UNTUK NINJA (Agar juce::juceaide tidak error 127)
+          sudo ln -sf /usr/bin/juceaide /usr/bin/juce::juceaide
 
       - name: Final Build
         run: |
-          # Langsung build utama (juceaide sudah terdeteksi di /usr/bin)
+          # Sekarang jalankan build utama
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
