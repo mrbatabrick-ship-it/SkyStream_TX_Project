@@ -33,17 +33,21 @@ jobs:
           
           echo "CPATH=/usr/include/freetype2" >> $GITHUB_ENV
 
-      - name: Configure and Build
+      - name: Configure
         run: |
-          # 1. Configure
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON
-          
-          # 2. Build juceaide secara eksplisit terlebih dahulu untuk menghindari Error 127
+
+      - name: Build juceaide
+        run: |
+          # Membangun juceaide terlebih dahulu agar tersedia untuk pembuatan header
           cmake --build build --target juceaide --config Release
-          
-          # 3. Build aplikasi utama
+
+      - name: Build SkyStream_TX
+        run: |
+          # Menambahkan direktori build ke PATH agar juce::juceaide bisa ditemukan
+          export PATH=$PATH:$(pwd)/build/extras/Build/juceaide/juceaide_artefacts/Release
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Linux Binary
