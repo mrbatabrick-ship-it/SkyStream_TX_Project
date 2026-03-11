@@ -20,13 +20,13 @@ jobs:
       - name: Force Clean Build and Fix Juceaide
         run: |
           rm -rf build
-          # Menambahkan libcurl ke flags pkg-config agar linker menemukannya
+          # Menambahkan -lcurl secara eksplisit ke Linker Flags untuk mengatasi undefined reference
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON \
             -DJUCE_WEB_BROWSER=OFF \
             -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1 libcurl)" \
-            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.1 libcurl)"
+            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.1 libcurl) -lcurl -lpthread -ldl"
           
           cmake --build build --target juceaide --config Release
           
@@ -37,7 +37,7 @@ jobs:
 
       - name: Final Build SkyStream TX
         run: |
-          # Sekarang linker akan menyertakan library curl dan build akan selesai
+          # Langkah terakhir yang akan menggabungkan semua library menjadi binary tunggal
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
