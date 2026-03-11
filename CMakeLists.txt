@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 project(SkyStream_TX_Project VERSION 1.0.0)
 
-# 1. PENCEGAHAN ERROR LINKER (WAJIB DI ATAS)
-# Memaksa JUCE mengabaikan CURL dan WebBrowser agar tidak mencari library sistem
+# Matikan fitur yang tidak perlu agar linker stabil
 set(JUCE_USE_CURL OFF CACHE BOOL "" FORCE)
 set(JUCE_WEB_BROWSER OFF CACHE BOOL "" FORCE)
 
-# 2. FETCH JUCE
 include(FetchContent)
 FetchContent_Declare(
     juce
@@ -15,7 +13,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(juce)
 
-# 3. SETUP APLIKASI
 juce_add_gui_app(SkyStream_TX
     PRODUCT_NAME "SkyStream TX"
 )
@@ -40,10 +37,4 @@ target_link_libraries(SkyStream_TX PRIVATE
     juce::juce_graphics
     juce::juce_gui_basics
     juce::juce_gui_extra
-)
-
-# 4. DEFINISI COMPILER (DOUBLE CHECK)
-target_compile_definitions(SkyStream_TX PRIVATE 
-    JUCE_USE_CURL=0 
-    JUCE_WEB_BROWSER=0
 )

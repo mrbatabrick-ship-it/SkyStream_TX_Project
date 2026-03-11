@@ -6,51 +6,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          # Kita install library grafis dasar (X11, freetype) tapi tanpa Webkit
+          # Menggunakan daftar lengkap yang sudah terbukti berhasil melewati juceaide
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
-            libxext-dev libxrandr-dev pkg-config ninja-build wget file
+            libxext-dev libxrandr-dev libxrender-dev libxkbcommon-dev \
+            pkg-config ninja-build wget file
 
       - name: Build SkyStream TX
         run: |
-          # Paksa JUCE untuk mengabaikan CURL dan WebBrowser di level sistem
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_USE_CURL=OFF \
-            -DJUCE_WEB_BROWSER=OFF
+          rm -rf build
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target SkyStream_TX --config Release
 
       - name: Create AppImage
         run: |
           mkdir -p SkyStream.AppDir/usr/bin
           BINARY_PATH=$(find build -name SkyStream_TX -type f -executable | head -n 1)
+          
+          # Bersihkan binary agar ringan
           strip "$BINARY_PATH"
           cp "$BINARY_PATH" SkyStream.AppDir/usr/bin/
           
-          cat > SkyStream.AppDir/skystream.desktop <<EOF
-          [Desktop Entry]
-          Type=Application
-          Name=SkyStream TX
-          Exec=SkyStream_TX
-          Icon=skystream
-          Categories=Audio;
-          EOF
-          
-          cat > SkyStream.AppDir/AppRun <<EOF
-          #!/bin/sh
-          HERE="\$(dirname "\$(readlink -f "\${0}")")"
-          exec "\$HERE/usr/bin/SkyStream_TX" "\$@"
-          EOF
+          # Setup struktur AppImage agar bisa dijalankan
+          echo -e "[Desktop Entry]\nType=Application\nName=SkyStream TX\nExec=SkyStream_TX\nIcon=skystream\nCategories=Audio;" > SkyStream.AppDir/skystream.desktop
+          echo -e '#!/bin/sh\nHERE="$(dirname "$(readlink -f "${0}")")"\nexec "$HERE/usr/bin/SkyStream_TX" "$@"' > SkyStream.AppDir/AppRun
           chmod +x SkyStream.AppDir/AppRun
           
+          # Icon placeholder
           wget -O SkyStream.AppDir/skystream.png https://raw.githubusercontent.com/google/material-design-icons/master/png/av/volume_up/black/48dp/1x/ic_volume_up_black_48dp.png
           
+          # Proses packing AppImage
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage SkyStream.AppDir SkyStream_TX.AppImage
