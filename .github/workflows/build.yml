@@ -20,12 +20,12 @@ jobs:
       - name: Build
         run: |
           rm -rf build
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target SkyStream_TX --config Release
 
-      - name: Upload Binary Mentah
+      - name: Upload Binary
         uses: actions/upload-artifact@v4
         with:
-          name: SkyStream-TX-Linux-Executable
-          # Perintah ini akan otomatis mencari file SkyStream_TX di dalam folder build
+          name: SkyStream-TX-Linux
+          # Mencari file mentah hasil build tanpa peduli foldernya
           path: build/**/SkyStream_TX
