@@ -15,48 +15,17 @@ jobs:
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
             libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
-            freeglut3-dev libgtk-3-dev libwebkit2gtk-4.1-dev ninja-build \
-            wget file
+            freeglut3-dev libgtk-3-dev libwebkit2gtk-4.1-dev ninja-build
 
       - name: Build
         run: |
           rm -rf build
-          # Kita biarkan JUCE membangun juceaide-nya sendiri secara internal (default)
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target SkyStream_TX --config Release
 
-      - name: Create AppImage
-        run: |
-          mkdir -p SkyStream.AppDir/usr/bin
-          
-          # SOLUSI AKHIR: Mencari binary SkyStream_TX secara rekursif di folder build
-          # Kami mencari file executable yang bukan juceaide dan bukan folder build itu sendiri
-          REAL_BINARY=$(find build -type f -name "SkyStream_TX" -executable | grep -v "juceaide" | head -n 1)
-          
-          if [ -z "$REAL_BINARY" ]; then
-            echo "ERROR: Target build gagal menghasilkan binary!"
-            exit 1
-          fi
-          
-          echo "Ditemukan di: $REAL_BINARY"
-          cp "$REAL_BINARY" SkyStream.AppDir/usr/bin/SkyStream_TX
-          strip SkyStream.AppDir/usr/bin/SkyStream_TX
-          
-          # Membuat struktur AppImage
-          echo -e "[Desktop Entry]\nType=Application\nName=SkyStream TX\nExec=SkyStream_TX\nIcon=skystream\nCategories=Audio;" > SkyStream.AppDir/skystream.desktop
-          echo -e '#!/bin/sh\nHERE="$(dirname "$(readlink -f "${0}")")"\nexec "$HERE/usr/bin/SkyStream_TX" "$@"' > SkyStream.AppDir/AppRun
-          chmod +x SkyStream.AppDir/AppRun
-          
-          # Icon
-          wget -O SkyStream.AppDir/skystream.png https://raw.githubusercontent.com/google/material-design-icons/master/png/av/volume_up/black/48dp/1x/ic_volume_up_black_48dp.png
-          
-          # Packaging
-          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-          ./appimagetool-x86_64.AppImage SkyStream.AppDir SkyStream_TX.AppImage
-
-      - name: Upload Artifact
+      - name: Find and Upload Binary
         uses: actions/upload-artifact@v4
         with:
-          name: SkyStream-TX-AppImage
-          path: SkyStream_TX.AppImage
+          name: SkyStream-TX-Linux-Binary
+          path: |
+            build/**/SkyStream_TX

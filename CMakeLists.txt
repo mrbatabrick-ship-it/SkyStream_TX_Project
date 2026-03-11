@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(SkyStream_TX_Project VERSION 1.0.0)
 
-# Matikan CURL untuk mencegah error linker yang kita temui sebelumnya
 set(JUCE_USE_CURL OFF CACHE BOOL "" FORCE)
 set(JUCE_WEB_BROWSER OFF CACHE BOOL "" FORCE)
 
@@ -13,11 +12,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(juce)
 
-juce_add_gui_app(SkyStream_TX
-    PRODUCT_NAME "SkyStream TX"
-)
-
-# Biarkan JUCE mengelola headernya sendiri secara otomatis
+juce_add_gui_app(SkyStream_TX PRODUCT_NAME "SkyStream TX")
 juce_generate_juce_header(SkyStream_TX)
 
 target_sources(SkyStream_TX PRIVATE
