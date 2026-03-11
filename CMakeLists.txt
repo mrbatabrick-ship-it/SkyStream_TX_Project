@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 project(SkyStream_TX_Project VERSION 1.0.0)
 
+# Menonaktifkan fitur bermasalah sebelum JUCE dimuat
+set(JUCE_USE_CURL OFF CACHE BOOL "" FORCE)
+set(JUCE_WEB_BROWSER OFF CACHE BOOL "" FORCE)
+
 include(FetchContent)
 FetchContent_Declare(
     juce
@@ -34,4 +38,10 @@ target_link_libraries(SkyStream_TX PRIVATE
     juce::juce_graphics
     juce::juce_gui_basics
     juce::juce_gui_extra
+)
+
+# Memaksa compiler mengabaikan definisi CURL di kode sumber
+target_compile_definitions(SkyStream_TX PRIVATE 
+    JUCE_USE_CURL=0 
+    JUCE_WEB_BROWSER=0
 )
