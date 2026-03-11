@@ -18,48 +18,29 @@ jobs:
             freeglut3-dev libgtk-3-dev libwebkit2gtk-4.1-dev ninja-build \
             wget file
 
-      - name: Clean and Configure SkyStream TX
+      - name: Build
         run: |
           rm -rf build
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DJUCE_BUILD_HELPER_TOOLS=ON \
-            -DJUCE_WEB_BROWSER=OFF \
-            -DJUCE_USE_CURL=OFF \
-            -Djuce_core_USE_CURL=OFF \
-            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1) -DJUCE_USE_CURL=0" \
-            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.1) -lpthread -ldl"
-
-      - name: Build juceaide
-        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON
           cmake --build build --target juceaide --config Release
-          JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
-          sudo cp "$JUCE_EXE" /usr/bin/juceaide
-          sudo chmod +x /usr/bin/juceaide
-          sudo ln -sf /usr/bin/juceaide /usr/bin/juce::juceaide
+          cmake --build build --target SkyStream_TX --config Release
 
-      - name: Final Build SkyStream TX
-        run: |
-          cmake --build build --config Release --target SkyStream_TX
+      - name: Debug Folder Structure
+        run: ls -R build # Ini akan membantu kita jika file 'hilang' lagi
 
       - name: Create AppImage
         run: |
-          # 1. Siapkan folder tanpa bergantung pada folder 'dist'
           mkdir -p SkyStream.AppDir/usr/bin
           
-          # 2. CARI FILE SECARA OTOMATIS (Solusi Akhir)
-          # Kita mencari file bernama SkyStream_TX yang bisa dieksekusi, tapi bukan juceaide
-          BINARY_PATH=$(find build -name SkyStream_TX -type f -executable | grep -v "juceaide" | head -n 1)
+          # Cari binary yang tadi kita paksa namanya di CMake
+          REAL_BINARY=$(find build -name "SkyStreamTXBinary" -type f -executable | head -n 1)
           
-          if [ -z "$BINARY_PATH" ]; then
-            echo "ERROR: File SkyStream_TX tidak ditemukan di folder build!"
+          if [ -z "$REAL_BINARY" ]; then
+            echo "ERROR: Binary tetap tidak ditemukan!"
             exit 1
           fi
           
-          echo "Ditemukan di: $BINARY_PATH"
-          cp "$BINARY_PATH" SkyStream.AppDir/usr/bin/SkyStream_TX
-          
-          # 3. Optimasi dan Packing
+          cp "$REAL_BINARY" SkyStream.AppDir/usr/bin/SkyStream_TX
           strip SkyStream.AppDir/usr/bin/SkyStream_TX
           
           echo -e "[Desktop Entry]\nType=Application\nName=SkyStream TX\nExec=SkyStream_TX\nIcon=skystream\nCategories=Audio;" > SkyStream.AppDir/skystream.desktop
@@ -72,7 +53,7 @@ jobs:
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage SkyStream.AppDir SkyStream_TX.AppImage
 
-      - name: Upload AppImage
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SkyStream-TX-AppImage
