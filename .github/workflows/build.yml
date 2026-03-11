@@ -22,27 +22,22 @@ jobs:
         run: |
           rm -rf build
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON
-          cmake --build build --target juceaide --config Release
           cmake --build build --target SkyStream_TX --config Release
-
-      - name: Debug Folder Structure
-        run: ls -R build # Ini akan membantu kita jika file 'hilang' lagi
 
       - name: Create AppImage
         run: |
           mkdir -p SkyStream.AppDir/usr/bin
           
-          # Cari binary yang tadi kita paksa namanya di CMake
-          REAL_BINARY=$(find build -name "SkyStreamTXBinary" -type f -executable | head -n 1)
+          # MENCARI BINARY SECARA AGRESIF (Solusi pasti untuk 'No such file')
+          # Mencari file bernama SkyStream_TX yang executable dan bukan di folder juceaide
+          REAL_BINARY=$(find build -type f -name "SkyStream_TX" -executable | grep -v "juceaide" | head -n 1)
           
-          if [ -z "$REAL_BINARY" ]; then
-            echo "ERROR: Binary tetap tidak ditemukan!"
-            exit 1
-          fi
-          
+          echo "Binary ditemukan di: $REAL_BINARY"
           cp "$REAL_BINARY" SkyStream.AppDir/usr/bin/SkyStream_TX
+          
           strip SkyStream.AppDir/usr/bin/SkyStream_TX
           
+          # Metadata AppImage
           echo -e "[Desktop Entry]\nType=Application\nName=SkyStream TX\nExec=SkyStream_TX\nIcon=skystream\nCategories=Audio;" > SkyStream.AppDir/skystream.desktop
           echo -e '#!/bin/sh\nHERE="$(dirname "$(readlink -f "${0}")")"\nexec "$HERE/usr/bin/SkyStream_TX" "$@"' > SkyStream.AppDir/AppRun
           chmod +x SkyStream.AppDir/AppRun
