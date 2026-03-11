@@ -11,7 +11,6 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          # Menggunakan libwebkit2gtk-4.1-dev untuk kesesuaian dengan Ubuntu Noble
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
@@ -21,16 +20,16 @@ jobs:
       - name: Force Clean Build and Fix Juceaide
         run: |
           rm -rf build
+          # Menambahkan flags untuk menghubungkan library curl secara eksplisit
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON \
             -DJUCE_WEB_BROWSER=OFF \
-            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1)" \
-            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.1)"
+            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1 libcurl)" \
+            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.1 libcurl)"
           
           cmake --build build --target juceaide --config Release
           
-          # Trik Alias (Solusi Exit Code 127 tetap dipertahankan)
           JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
           sudo cp "$JUCE_EXE" /usr/bin/juceaide
           sudo chmod +x /usr/bin/juceaide
@@ -38,7 +37,7 @@ jobs:
 
       - name: Final Build SkyStream TX
         run: |
-          # Build final yang akan merakit semua komponen menjadi satu binary
+          # Sekarang linker akan menemukan fungsi curl yang dibutuhkan
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
