@@ -1,60 +1,58 @@
 name: Build_SkyStream_TX_Linux
 
 on:
-  push:
-  pull_request:
+push:
+pull_request:
 
 jobs:
-  build-linux:
+build-linux:
+runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
+```
+steps:
+  - name: Checkout
+    uses: actions/checkout@v4
 
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+  - name: Install Dependencies
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y \
+        build-essential \
+        ninja-build \
+        pkg-config \
+        libasound2-dev \
+        libjack-jackd2-dev \
+        libfreetype6-dev \
+        libx11-dev \
+        libxcomposite-dev \
+        libxcursor-dev \
+        libxinerama-dev \
+        libxext-dev \
+        libxrandr-dev \
+        libxrender-dev \
+        libgl1-mesa-dev \
+        libglu1-mesa-dev \
+        freeglut3-dev \
+        libcurl4-openssl-dev \
+        libgtk-3-dev
 
-    - name: Install Linux Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ninja-build \
-          pkg-config \
-          libasound2-dev \
-          libjack-jackd2-dev \
-          libfreetype6-dev \
-          libx11-dev \
-          libxcomposite-dev \
-          libxcursor-dev \
-          libxinerama-dev \
-          libxext-dev \
-          libxrandr-dev \
-          libxrender-dev \
-          libgl1-mesa-dev \
-          libglu1-mesa-dev \
-          freeglut3-dev \
-          libcurl4-openssl-dev \
-          libgtk-3-dev
+  - name: Configure
+    run: |
+      cmake -B build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DJUCE_BUILD_HELPER_TOOLS=ON
 
-    - name: Verify GTK Installation
-      run: |
-        pkg-config --modversion gtk+-3.0
-        pkg-config --cflags gtk+-3.0
-        pkg-config --libs gtk+-3.0
+  - name: Build juceaide FIRST
+    run: |
+      cmake --build build --target juceaide
 
-    - name: Configure CMake
-      run: |
-        cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DJUCE_BUILD_HELPER_TOOLS=ON
+  - name: Build Project
+    run: |
+      cmake --build build --config Release
 
-    - name: Build Project
-      run: |
-        cmake --build build --config Release
-
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: SkyStream_TX_Linux
-        path: |
-          build/*_artefacts/Release
+  - name: Upload Artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: SkyStream_TX_Linux
+      path: build/*_artefacts/Release
+```
