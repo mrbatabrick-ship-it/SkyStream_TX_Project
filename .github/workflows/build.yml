@@ -20,7 +20,7 @@ jobs:
       - name: Force Clean Build and Fix Juceaide
         run: |
           rm -rf build
-          # Menambahkan flags untuk menghubungkan library curl secara eksplisit
+          # Menambahkan libcurl ke flags pkg-config agar linker menemukannya
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON \
@@ -37,7 +37,7 @@ jobs:
 
       - name: Final Build SkyStream TX
         run: |
-          # Sekarang linker akan menemukan fungsi curl yang dibutuhkan
+          # Sekarang linker akan menyertakan library curl dan build akan selesai
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
