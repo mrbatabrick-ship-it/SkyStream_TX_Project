@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(SkyStream_TX_Project VERSION 1.0.0)
 
-# Matikan fitur yang tidak perlu agar linker stabil
+# Tetap matikan CURL agar linker tidak mencari simbol yang hilang
 set(JUCE_USE_CURL OFF CACHE BOOL "" FORCE)
 set(JUCE_WEB_BROWSER OFF CACHE BOOL "" FORCE)
 
