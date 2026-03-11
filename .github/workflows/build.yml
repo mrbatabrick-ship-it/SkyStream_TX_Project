@@ -1,59 +1,53 @@
 name: Build_SkyStream_TX_Linux
-
-on:
-push:
-pull_request:
+on: [push]
 
 jobs:
-build-linux:
-runs-on: ubuntu-latest
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-```
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          # Menambahkan libgtk-3-0 dan ninja-build secara eksplisit
+          sudo apt-get install -y \
+            libasound2-dev libjack-jackd2-dev libfreetype6-dev \
+            libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
+            libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
+            freeglut3-dev libgtk-3-dev libgtk-3-0 ninja-build
 
-  - name: Install dependencies
-    run: |
-      sudo apt-get update
-      sudo apt-get install -y \
-        build-essential \
-        ninja-build \
-        pkg-config \
-        libasound2-dev \
-        libjack-jackd2-dev \
-        libfreetype6-dev \
-        libx11-dev \
-        libxcomposite-dev \
-        libxcursor-dev \
-        libxinerama-dev \
-        libxext-dev \
-        libxrandr-dev \
-        libxrender-dev \
-        libgl1-mesa-dev \
-        libglu1-mesa-dev \
-        freeglut3-dev \
-        libcurl4-openssl-dev \
-        libgtk-3-dev
+      - name: Verify GTK Presence
+        # Langkah pengamanan untuk memastikan library siap sebelum build
+        run: pkg-config --cflags --libs gtk+-3.0
 
-  - name: Configure CMake
-    run: |
-      cmake -B build -G Ninja \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DJUCE_BUILD_HELPER_TOOLS=ON
+      - name: Force Clean Build and Fix Juceaide
+        run: |
+          rm -rf build
+          # Menyertakan flags pkg-config agar CMake mendeteksi GTK dengan pasti
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DJUCE_BUILD_HELPER_TOOLS=ON \
+            -DJUCE_WEB_BROWSER=OFF \
+            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0)" \
+            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0)"
+          
+          cmake --build build --target juceaide --config Release
+          
+          # Trik Alias (Solusi Exit Code 127 yang sudah teruji)
+          JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
+          sudo cp "$JUCE_EXE" /usr/bin/juceaide
+          sudo chmod +x /usr/bin/juceaide
+          sudo ln -sf /usr/bin/juceaide /usr/bin/juce::juceaide
 
-  - name: Build juceaide first
-    run: |
-      cmake --build build --target juceaide
+      - name: Final Build SkyStream TX
+        run: |
+          # Sekarang compiler tidak akan lagi kehilangan header gtk.h
+          cmake --build build --config Release --target SkyStream_TX
 
-  - name: Build project
-    run: |
-      cmake --build build --config Release
-
-  - name: Upload artifact
-    uses: actions/upload-artifact@v4
-    with:
-      name: SkyStream_TX_Linux
-      path: build/*_artefacts/Release
-```
-#1234
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyStream-TX-Linux
+          path: build/SkyStream_TX_artefacts/Release/
