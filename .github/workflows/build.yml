@@ -11,29 +11,36 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          # Library GTK3 ini adalah kunci untuk menghilangkan error gtk/gtk.h
+          # Menginstal library GTK3 dan audio yang wajib ada untuk JUCE di Linux
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
             libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
             freeglut3-dev libgtk-3-dev ninja-build
 
-      - name: Force Fix Juceaide
+      - name: Force Clean Build and Fix Juceaide
         run: |
-          # Bersihkan sisa build lama agar tidak ada cache yang nyangkut
+          # Menghapus folder build lama untuk memastikan library GTK yang baru diinstal terdeteksi
           rm -rf build
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DJUCE_BUILD_HELPER_TOOLS=ON -DJUCE_WEB_BROWSER=OFF
+          
+          # Konfigurasi awal dengan Helper Tools diaktifkan
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DJUCE_BUILD_HELPER_TOOLS=ON \
+            -DJUCE_WEB_BROWSER=OFF
+          
+          # Membangun juceaide secara mandiri
           cmake --build build --target juceaide --config Release
           
-          # Trik alias yang sudah terbukti berhasil melewati exit code 127
+          # Trik Alias: Membuat link agar Ninja menemukan juce::juceaide (Solusi Exit Code 127)
           JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
           sudo cp "$JUCE_EXE" /usr/bin/juceaide
           sudo chmod +x /usr/bin/juceaide
           sudo ln -sf /usr/bin/juceaide /usr/bin/juce::juceaide
 
-      - name: Final Build
+      - name: Final Build SkyStream TX
         run: |
-          # Sekarang compiler PASTI menemukan <gtk/gtk.h>
+          # Proses ini sekarang akan melesat melewati angka 13/20 karena GTK sudah ada
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
