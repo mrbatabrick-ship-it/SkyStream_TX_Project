@@ -11,31 +11,28 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          # Menambahkan libgtk-3-0 dan ninja-build secara eksplisit
+          # Menambahkan libwebkit2gtk-4.0-dev untuk mengatasi error webkit2.h
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
             libxext-dev libxrandr-dev libcurl4-openssl-dev pkg-config \
-            freeglut3-dev libgtk-3-dev libgtk-3-0 ninja-build
-
-      - name: Verify GTK Presence
-        # Langkah pengamanan untuk memastikan library siap sebelum build
-        run: pkg-config --cflags --libs gtk+-3.0
+            freeglut3-dev libgtk-3-dev libwebkit2gtk-4.0-dev ninja-build
 
       - name: Force Clean Build and Fix Juceaide
         run: |
+          # Menghapus cache secara total adalah kunci agar library baru terdeteksi
           rm -rf build
-          # Menyertakan flags pkg-config agar CMake mendeteksi GTK dengan pasti
+          
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON \
             -DJUCE_WEB_BROWSER=OFF \
-            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0)" \
-            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0)"
+            -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0 webkit2gtk-4.0)" \
+            -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.0)"
           
           cmake --build build --target juceaide --config Release
           
-          # Trik Alias (Solusi Exit Code 127 yang sudah teruji)
+          # Trik Alias (Solusi Exit Code 127 yang tetap kita pertahankan)
           JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
           sudo cp "$JUCE_EXE" /usr/bin/juceaide
           sudo chmod +x /usr/bin/juceaide
@@ -43,7 +40,7 @@ jobs:
 
       - name: Final Build SkyStream TX
         run: |
-          # Sekarang compiler tidak akan lagi kehilangan header gtk.h
+          # Sekarang compiler akan menemukan gtk.h dan webkit2.h
           cmake --build build --config Release --target SkyStream_TX
 
       - name: Upload Artifact
