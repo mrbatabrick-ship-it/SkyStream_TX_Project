@@ -38,33 +38,36 @@ jobs:
           sudo chmod +x /usr/bin/juceaide
           sudo ln -sf /usr/bin/juceaide /usr/bin/juce::juceaide
 
-      - name: Build and Install SkyStream TX
+      - name: Final Build SkyStream TX
         run: |
-          # Build target utama
           cmake --build build --config Release --target SkyStream_TX
-          # Gunakan fitur Install CMake untuk memindahkan binary ke folder 'dist'
-          cmake --install build --prefix dist --component SkyStream_TX
 
       - name: Create AppImage
         run: |
-          # 1. Gunakan folder 'dist' hasil install sebagai dasar AppDir
+          # 1. Siapkan folder tanpa bergantung pada folder 'dist'
           mkdir -p SkyStream.AppDir/usr/bin
           
-          # 2. Cari binary di dalam folder dist (pasti ada di sini)
-          find dist -name SkyStream_TX -type f -exec cp {} SkyStream.AppDir/usr/bin/ \;
+          # 2. CARI FILE SECARA OTOMATIS (Solusi Akhir)
+          # Kita mencari file bernama SkyStream_TX yang bisa dieksekusi, tapi bukan juceaide
+          BINARY_PATH=$(find build -name SkyStream_TX -type f -executable | grep -v "juceaide" | head -n 1)
           
-          # 3. Optimasi binary
+          if [ -z "$BINARY_PATH" ]; then
+            echo "ERROR: File SkyStream_TX tidak ditemukan di folder build!"
+            exit 1
+          fi
+          
+          echo "Ditemukan di: $BINARY_PATH"
+          cp "$BINARY_PATH" SkyStream.AppDir/usr/bin/SkyStream_TX
+          
+          # 3. Optimasi dan Packing
           strip SkyStream.AppDir/usr/bin/SkyStream_TX
           
-          # 4. Metadata AppImage
           echo -e "[Desktop Entry]\nType=Application\nName=SkyStream TX\nExec=SkyStream_TX\nIcon=skystream\nCategories=Audio;" > SkyStream.AppDir/skystream.desktop
           echo -e '#!/bin/sh\nHERE="$(dirname "$(readlink -f "${0}")")"\nexec "$HERE/usr/bin/SkyStream_TX" "$@"' > SkyStream.AppDir/AppRun
           chmod +x SkyStream.AppDir/AppRun
           
-          # 5. Icon
           wget -O SkyStream.AppDir/skystream.png https://raw.githubusercontent.com/google/material-design-icons/master/png/av/volume_up/black/48dp/1x/ic_volume_up_black_48dp.png
           
-          # 6. Packing AppImage
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage SkyStream.AppDir SkyStream_TX.AppImage
