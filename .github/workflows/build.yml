@@ -11,31 +11,27 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          # Menghapus libwebkit2gtk karena kita matikan fiturnya
-          # Menambah libxkbcommon & libxrender untuk stabilitas juceaide
           sudo apt-get install -y \
             libasound2-dev libjack-jackd2-dev libfreetype6-dev \
             libx11-dev libxcomposite-dev libxcursor-dev libxinerama-dev \
-            libxext-dev libxrandr-dev libxkbcommon-dev libxrender-dev \
-            pkg-config ninja-build wget file
+            libxext-dev libxrandr-dev pkg-config ninja-build wget file
 
       - name: Build SkyStream TX
         run: |
-          # Bersihkan cache untuk memastikan instruksi baru terbaca
-          rm -rf build
           cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target SkyStream_TX --config Release
 
       - name: Create AppImage
         run: |
+          # Persiapan folder
           mkdir -p SkyStream.AppDir/usr/bin
           BINARY_PATH=$(find build -name SkyStream_TX -type f -executable | head -n 1)
           
-          # Perkecil ukuran binary
+          # Optimasi ukuran file (Strip)
           strip "$BINARY_PATH"
           cp "$BINARY_PATH" SkyStream.AppDir/usr/bin/
           
-          # Metadata AppImage
+          # Setup struktur AppImage
           cat > SkyStream.AppDir/skystream.desktop <<EOF
           [Desktop Entry]
           Type=Application
@@ -52,10 +48,10 @@ jobs:
           EOF
           chmod +x SkyStream.AppDir/AppRun
           
-          # Menggunakan icon default sistem audio
+          # Icon default
           wget -O SkyStream.AppDir/skystream.png https://raw.githubusercontent.com/google/material-design-icons/master/png/av/volume_up/black/48dp/1x/ic_volume_up_black_48dp.png
           
-          # Build AppImage file
+          # Generate AppImage
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage SkyStream.AppDir SkyStream_TX.AppImage
