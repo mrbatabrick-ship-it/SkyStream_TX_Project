@@ -47,14 +47,17 @@ jobs:
           # 1. Setup folder struktur
           mkdir -p SkyStream.AppDir/usr/bin
           
-          # 2. Ambil binary dari folder artefacts JUCE (lokasi pasti hasil build)
-          # Menggunakan wildcard agar tahan terhadap perubahan nama folder internal
-          cp build/SkyStream_TX_artefacts/Release/SkyStream_TX SkyStream.AppDir/usr/bin/
+          # 2. PENCARIAN DINAMIS (Solusi Fix): Mencari file SkyStream_TX yang asli
+          # Kami mencari di folder build dan mengambil file executable yang bukan di dalam folder juceaide
+          REAL_BINARY=$(find build -name SkyStream_TX -type f -executable | grep -v "_artefacts" || find build -name SkyStream_TX -type f -executable | head -n 1)
           
-          # 3. Perkecil ukuran binary
+          echo "Binary ditemukan di: $REAL_BINARY"
+          cp "$REAL_BINARY" SkyStream.AppDir/usr/bin/SkyStream_TX
+          
+          # 3. Optimasi binary
           strip SkyStream.AppDir/usr/bin/SkyStream_TX
           
-          # 4. Buat file pendukung AppImage
+          # 4. Metadata AppImage
           cat > SkyStream.AppDir/skystream.desktop <<EOF
           [Desktop Entry]
           Type=Application
@@ -71,10 +74,10 @@ jobs:
           EOF
           chmod +x SkyStream.AppDir/AppRun
           
-          # 5. Icon placeholder
+          # 5. Icon
           wget -O SkyStream.AppDir/skystream.png https://raw.githubusercontent.com/google/material-design-icons/master/png/av/volume_up/black/48dp/1x/ic_volume_up_black_48dp.png
           
-          # 6. Build AppImage
+          # 6. Packing AppImage
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage SkyStream.AppDir SkyStream_TX.AppImage
