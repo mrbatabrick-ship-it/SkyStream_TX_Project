@@ -19,8 +19,10 @@ jobs:
 
       - name: Build SkyStream TX
         run: |
+          # Hapus cache untuk memastikan perubahan flag JUCE diterapkan
           rm -rf build
-          # Menonaktifkan CURL dan Browser untuk memutus rantai error linking
+          
+          # Menonaktifkan CURL dan Browser secara eksplisit untuk bypass error linking
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DJUCE_BUILD_HELPER_TOOLS=ON \
@@ -29,10 +31,10 @@ jobs:
             -DCMAKE_CXX_FLAGS="$(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1)" \
             -DCMAKE_EXE_LINKER_FLAGS="$(pkg-config --libs gtk+-3.0 webkit2gtk-4.1) -lpthread -ldl"
           
-          # Build juceaide sebagai syarat utama
+          # Bangun juceaide
           cmake --build build --target juceaide --config Release
           
-          # Trik Linker agar sistem mengenali juceaide
+          # Daftarkan juceaide ke sistem (Solusi Exit Code 127)
           JUCE_EXE=$(find build -name juceaide -type f -executable | head -n 1)
           sudo cp "$JUCE_EXE" /usr/bin/juceaide
           sudo chmod +x /usr/bin/juceaide
