@@ -38,40 +38,27 @@ jobs:
           sudo chmod +x /usr/bin/juceaide
           sudo ln -sf /usr/bin/juceaide /usr/bin/juce::juceaide
 
-      - name: Final Build SkyStream TX
+      - name: Build and Install SkyStream TX
         run: |
+          # Build target utama
           cmake --build build --config Release --target SkyStream_TX
+          # Gunakan fitur Install CMake untuk memindahkan binary ke folder 'dist'
+          cmake --install build --prefix dist --component SkyStream_TX
 
       - name: Create AppImage
         run: |
-          # 1. Setup folder struktur
+          # 1. Gunakan folder 'dist' hasil install sebagai dasar AppDir
           mkdir -p SkyStream.AppDir/usr/bin
           
-          # 2. PENCARIAN DINAMIS (Solusi Fix): Mencari file SkyStream_TX yang asli
-          # Kami mencari di folder build dan mengambil file executable yang bukan di dalam folder juceaide
-          REAL_BINARY=$(find build -name SkyStream_TX -type f -executable | grep -v "_artefacts" || find build -name SkyStream_TX -type f -executable | head -n 1)
-          
-          echo "Binary ditemukan di: $REAL_BINARY"
-          cp "$REAL_BINARY" SkyStream.AppDir/usr/bin/SkyStream_TX
+          # 2. Cari binary di dalam folder dist (pasti ada di sini)
+          find dist -name SkyStream_TX -type f -exec cp {} SkyStream.AppDir/usr/bin/ \;
           
           # 3. Optimasi binary
           strip SkyStream.AppDir/usr/bin/SkyStream_TX
           
           # 4. Metadata AppImage
-          cat > SkyStream.AppDir/skystream.desktop <<EOF
-          [Desktop Entry]
-          Type=Application
-          Name=SkyStream TX
-          Exec=SkyStream_TX
-          Icon=skystream
-          Categories=Audio;
-          EOF
-          
-          cat > SkyStream.AppDir/AppRun <<EOF
-          #!/bin/sh
-          HERE="\$(dirname "\$(readlink -f "\${0}")")"
-          exec "\$HERE/usr/bin/SkyStream_TX" "\$@"
-          EOF
+          echo -e "[Desktop Entry]\nType=Application\nName=SkyStream TX\nExec=SkyStream_TX\nIcon=skystream\nCategories=Audio;" > SkyStream.AppDir/skystream.desktop
+          echo -e '#!/bin/sh\nHERE="$(dirname "$(readlink -f "${0}")")"\nexec "$HERE/usr/bin/SkyStream_TX" "$@"' > SkyStream.AppDir/AppRun
           chmod +x SkyStream.AppDir/AppRun
           
           # 5. Icon
